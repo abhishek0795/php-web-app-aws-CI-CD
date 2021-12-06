@@ -15,9 +15,7 @@ phases:
       - echo Building the Docker images...
       - cd mysql
       - docker build -t $REPOSITORY_URI:latest .
-    #   - docker build -t $REPOSITORY_URI:latest mysql
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG_MYSQL
-      #- docker build -t $REPOSITORY_URI:latest -f apache2/Dockerfile .
       - cd ../apache2
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG_PHP
@@ -34,8 +32,3 @@ phases:
       - cat imagedefinitions.json
 artifacts:
     files: imagedefinitions.json
-
-
-Feedback
-English (US)
-© 2021, Amazon Web Services, Inc. or its affiliates.
