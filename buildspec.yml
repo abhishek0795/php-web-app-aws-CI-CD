@@ -1,0 +1,41 @@
+version: 0.2
+
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
+      - IMAGE_TAG_MYSQL=abhishek_mysql-build-$CODEBUILD_BUILD_NUMBER
+      - IMAGE_TAG_PHP=abhishek_php-build-$CODEBUILD_BUILD_NUMBER
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker images...
+      - cd mysql
+      - docker build -t $REPOSITORY_URI:latest .
+    #   - docker build -t $REPOSITORY_URI:latest mysql
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG_MYSQL
+      #- docker build -t $REPOSITORY_URI:latest -f apache2/Dockerfile .
+      - cd ../apache2
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG_PHP
+      - cd ..
+ 
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:$IMAGE_TAG_MYSQL
+      - docker push $REPOSITORY_URI:$IMAGE_TAG_PHP
+      - echo Writing image definitions file...
+      - printf '[{"name":"abhishek_mydb","imageUri":"%s"},\n{"name":"abhishek_phpApp","imageUri":"%s"}]' "$REPOSITORY_URI:$IMAGE_TAG_MYSQL" "$REPOSITORY_URI:$IMAGE_TAG_PHP" > imagedefinitions.json      
+      - cat imagedefinitions.json
+artifacts:
+    files: imagedefinitions.json
+
+
+Feedback
+English (US)
+© 2021, Amazon Web Services, Inc. or its affiliates.
